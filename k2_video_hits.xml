@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<install version="2.5" type="plugin" group="system" method="upgrade">
+	<name>System - K2 Video Hits</name>
+	<author>Matt Thomas</author>
+	<creationDate>January 3, 2012</creationDate>
+	<copyright>2013 Matt Thomas</copyright>
+	<license>GPL 2.0</license>
+	<authorEmail></authorEmail>
+	<authorUrl>http://www.betweenbrain.com</authorUrl>
+	<version>0.1</version>
+	<description>Joomla! 1.5/2.5 proof of concept pseudo-cron plugin to synchronize video view data from external
+		providers with K2 item hits. Pseduo-cron portion based on the FeedGator pseudo-cron plugin by Matt Faulds of
+		Trafalgar Design (UK) Ltd.
+	</description>
+	<files>
+		<filename plugin="k2_video_hits">k2_video_hits.php</filename>
+	</files>
+	<languages>
+		<language tag="en-GB">en-GB.plg_system_k2_video_hits.ini</language>
+	</languages>
+	<params>
+		<param name="interval"
+		       type="text"
+		       default="5"
+		       label="PLG_K2_VIDEO_HITS_INTERVAL_LABEL"
+		       description="PLG_K2_VIDEO_HITS_INTERVAL_DESC"/>
+		<param name="k2category"
+		       type="text"
+		       default=""
+		       label="PLG_K2_VIDEO_HITS_K2CATEGORY_LABEL"
+		       description="PLG_K2_VIDEO_HITS_K2CATEGORY_DESC"/>
+		<param name="exclusions"
+		       type="text"
+		       default=""
+		       label="PLG_K2_VIDEO_HITS_EXCLUSIONS_LABEL"
+		       description="PLG_K2_VIDEO_HITS_EXCLUSIONS_DESC"/>
+		<param name="youtube"
+		       type="radio"
+		       default="0"
+		       label="PLG_K2_VIDEO_HITS_YOUTUBE_LABEL"
+		       description="PLG_K2_VIDEO_HITS_YOUTUBE_DESC">
+			<option value="0">No</option>
+			<option value="1">Yes</option>
+		</param>
+		<param name="brightcove"
+		       type="radio"
+		       default="0"
+		       label="PLG_K2_VIDEO_HITS_BRIGHTCOVE_LABEL"
+		       description="PLG_K2_VIDEO_HITS_BRIGHTCOVE_DESC">
+			<option value="0">No</option>
+			<option value="1">Yes</option>
+		</param>
+		<param name="brightcovetoken"
+		       type="text"
+		       default=""
+		       label="PLG_K2_VIDEO_HITS_BRIGHTCOVE_TOKEN_LABEL"
+		       description="PLG_K2_VIDEO_HITS_BRIGHTCOVE_TOKEN_DESC"/>
+	</params>
+	<config>
+		<fields name="params">
+			<fieldset name="basic">
+				<field name="interval"
+				       type="text"
+				       default="5"
+				       label="PLG_K2_VIDEO_HITS_INTERVAL_LABEL"
+				       description="PLG_K2_VIDEO_HITS_INTERVAL_DESC"/>
+				<field name="k2category"
+				       type="text"
+				       default=""
+				       label="PLG_K2CATEGORY_LABEL"
+				       description="PLG_K2CATEGORY_DESC"/>
+				<field name="exclusions"
+				       type="text"
+				       default=""
+				       label="PLG_K2_VIDEO_HITS_EXCLUSIONS_LABEL"
+				       description="PLG_K2_VIDEO_HITS_EXCLUSIONS_DESC"/>
+				<field name="youtube"
+				       type="radio"
+				       default="0"
+				       label="PLG_K2_VIDEO_HITS_YOUTUBE_LABEL"
+				       description="PLG_K2_VIDEO_HITS_YOUTUBE_DESC">
+					<option value="0">No</option>
+					<option value="1">Yes</option>
+				</field>
+				<field name="brightcove"
+				       type="radio"
+				       default="0"
+				       label="PLG_K2_VIDEO_HITS_BRIGHTCOVE_LABEL"
+				       description="PLG_K2_VIDEO_HITS_BRIGHTCOVE_DESC">
+					<option value="0">No</option>
+					<option value="1">Yes</option>
+				</field>
+				<field name="brightcovetoken"
+				       type="text"
+				       default=""
+				       label="PLG_K2_VIDEO_HITS_BRIGHTCOVE_TOKEN_LABEL"
+				       description="PLG_K2_VIDEO_HITS_BRIGHTCOVE_TOKEN_DESC"/>
+			</fieldset>
+		</fields>
+	</config>
+</install>
