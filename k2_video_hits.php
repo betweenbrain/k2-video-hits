@@ -206,12 +206,12 @@ class plgSystemk2_video_hits extends JPlugin {
 		// Display error message in back-end if K2 category parameter isn't defined
 		if ($app->isAdmin() && !$k2categories) {
 			// Add a message to the admin message queue
-			$app->enqueueMessage(JText::_('A K2 category has not been set for the k2_video_hits plugin.'), 'error');
+			$app->enqueueMessage(JText::_('A K2 category has not been set for the k2 video hits plugin.'), 'error');
 		}
 
 		if ($app->isSite() && $k2categories && $this->runPseudoCron()) {
 			// JSON of all K2 items
-			$json = file_get_contents(JURI::base() . '/index.php?option=com_k2&view=itemlist&layout=category&format=json');
+			$json = file_get_contents(JURI::root() . '/index.php?option=com_k2&view=itemlist&layout=category&format=json');
 			// Decode the results as an associative array
 			$results = json_decode($json, TRUE);
 			// Get the items array
