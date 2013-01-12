@@ -36,9 +36,6 @@ class plgSystemk2_video_hits extends JPlugin {
 		$this->plugin =& JPluginHelper::getPlugin('system', 'k2_video_hits');
 		$this->params = new JParameter($this->plugin->params);
 
-		// Reference the global database object
-		$this->db = JFactory::getDbo();
-
 		// Convert input into minutes
 		$this->interval = (int) ($this->params->get('interval', 5) * 60);
 
@@ -55,6 +52,8 @@ class plgSystemk2_video_hits extends JPlugin {
 	 * @return bool
 	 */
 	private function runPseudoCron() {
+		// Reference the global database object
+		$db   = JFactory::getDbo();
 		$now  = JFactory::getDate();
 		$now  = $now->toUnix();
 		$last = $this->params->get('last_run');
@@ -76,21 +75,21 @@ class plgSystemk2_video_hits extends JPlugin {
 				$params = $handler->objectToString($params, array());
 				// Update plugin parameters in databaseSpelling
 				$query = 'UPDATE #__extensions' .
-					' SET params=' . $this->db->Quote($params) .
-					' WHERE element = ' . $this->db->Quote('k2_video_hits') .
-					' AND folder = ' . $this->db->Quote('system') .
+					' SET params=' . $db->Quote($params) .
+					' WHERE element = ' . $db->Quote('k2_video_hits') .
+					' AND folder = ' . $db->Quote('system') .
 					' AND enabled >= 1' .
-					' AND type =' . $this->db->Quote('plugin') .
+					' AND type =' . $db->Quote('plugin') .
 					' AND state >= 0';
-				$this->db->setQuery($query);
-				$this->db->query();
+				$db->setQuery($query);
+				$db->query();
 			} else {
 				// Retrieve saved parameters from database
 				$query = ' SELECT params' .
 					' FROM #__plugins' .
-					' WHERE element = ' . $this->db->Quote('k2_video_hits') . '';
-				$this->db->setQuery($query);
-				$params = $this->db->loadResult();
+					' WHERE element = ' . $db->Quote('k2_video_hits') . '';
+				$db->setQuery($query);
+				$params = $db->loadResult();
 				// Check if last_run parameter has been recorded before.
 				if (preg_match('/last_run=/', $params)) {
 					// If it has been, update it.
@@ -102,12 +101,12 @@ class plgSystemk2_video_hits extends JPlugin {
 				}
 				// Update plugin parameters in database
 				$query = 'UPDATE #__plugins' .
-					' SET params=' . $this->db->Quote($params) .
-					' WHERE element = ' . $this->db->Quote('k2_video_hits') .
-					' AND folder = ' . $this->db->Quote('system') .
+					' SET params=' . $db->Quote($params) .
+					' WHERE element = ' . $db->Quote('k2_video_hits') .
+					' AND folder = ' . $db->Quote('system') .
 					' AND published >= 1';
-				$this->db->setQuery($query);
-				$this->db->query();
+				$db->setQuery($query);
+				$db->query();
 			}
 
 			return TRUE;
@@ -180,13 +179,15 @@ class plgSystemk2_video_hits extends JPlugin {
 
 	private function updateK2($videoData, $item) {
 		if ($videoData) {
+			// Reference the global database object
+			$db = JFactory::getDbo();
 			// Update K2 with the video data from video provider.
 			$query = 'UPDATE #__k2_items' .
 				' SET hits = ' . $videoData['views'] .
 				' WHERE id = ' . $item['id'];
 
-			$this->db->setQuery($query);
-			$this->db->query();
+			$db->setQuery($query);
+			$db->query();
 		}
 	}
 
