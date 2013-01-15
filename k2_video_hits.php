@@ -20,7 +20,7 @@ class plgSystemk2_video_hits extends JPlugin {
 	 *
 	 * @var
 	 */
-	//protected $interval = 300;
+	protected $interval = 300;
 
 	/**
 	 * An associative array to contain data about each video
@@ -36,13 +36,11 @@ class plgSystemk2_video_hits extends JPlugin {
 		$this->plugin =& JPluginHelper::getPlugin('system', 'k2_video_hits');
 		$this->params = new JParameter($this->plugin->params);
 		// Convert input into minutes
-		$this->interval = (int) ($this->params->get('interval', 5) * 1);
+		$this->interval = (int) ($this->params->get('interval', 5) * 60);
 		// Correct value if value is under the minimum
-		/*
 		if ($this->interval < 300) {
 			$this->interval = 300;
 		}
-		*/
 	}
 
 	/**
@@ -96,7 +94,6 @@ class plgSystemk2_video_hits extends JPlugin {
 					$params = preg_replace('/last_run=([0-9]*)/', 'last_run=' . $now, $params);
 				} else {
 					// Add last_run parameter to database if it has not been recorded before.
-					// TODO: Currently adding last_run to beginning of param string due to extra "\n" when using $params .=
 					$params = 'last_run=' . $now . "\n" . $params;
 				}
 				// Update plugin parameters in database
@@ -126,45 +123,32 @@ class plgSystemk2_video_hits extends JPlugin {
 		$providerfield = htmlspecialchars($this->params->get('providerfield'));
 		$videoIdField  = htmlspecialchars($this->params->get('videoidfield'));
 		$youtube       = $this->params->get('youtube');
+		$videoData     = NULL;
 
 		// If Brightcove is enabled and in the K2 provider extra field or Media source field embed code
 		if ($brightcove && ((strtolower($item[$providerfield]) === 'brightcove') || strstr($item['video'], 'brightcove'))) {
-
-			// Define Brightcove API token to access video data from our account
 			$brightcovetoken = htmlspecialchars($this->params->get('brightcovetoken'));
-
-			// Check for data in K2 video ID extra field
 			if ($item[$videoIdField]) {
 				$videoId = $item[$videoIdField];
-			} // Otherwise match part of the embed code to extract the Brightcove Video ID
-			else {
+			} else {
 				preg_match('/@videoPlayer" value="([0-9]*)"/', $item['video'], $match);
 				$videoId = $match[1];
 			}
-
-			// Retrieve data about this video from Brightcove
-			$json = file_get_contents('http://api.brightcove.com/services/library?command=find_video_by_id&video_id=' . $videoId . '&video_fields=name,shortDescription,longDescription,publishedDate,lastModifiedDate,videoStillURL,length,playsTotal&token=' . $brightcovetoken);
-			// Decode the JSON results
-			$results = json_decode($json, TRUE);
-			// Update the videoData array from the data from Brightcove
+			$json               = file_get_contents('http://api.brightcove.com/services/library?command=find_video_by_id&video_id=' . $videoId . '&video_fields=name,shortDescription,longDescription,publishedDate,lastModifiedDate,videoStillURL,length,playsTotal&token=' . $brightcovetoken);
+			$results            = json_decode($json, TRUE);
 			$videoData['views'] = $results['playsTotal'];
-		} // If YouTube is enabled and in the Media source field embed code
-		elseif ($youtube && ((strtolower($item[$providerfield]) === 'youtube') || strstr($item['video'], 'youtube'))) {
+		}
 
-			// Check for data in K2 video ID extra field
+		// If YouTube is enabled and in the Media source field embed code
+		if ($youtube && ((strtolower($item[$providerfield]) === 'youtube') || strstr($item['video'], 'youtube'))) {
 			if ($item[$videoIdField]) {
 				$videoId = $item[$videoIdField];
-			} // Otherwise match part of the embed code to extract the YouTube Video ID
-			else {
+			} else {
 				preg_match('/\/embed\/([a-zA-Z0-9-?]*)"/', $item['video'], $match);
 				$videoId = $match[1];
 			}
-
-			// Retrieve data about this video from YouTube
-			$json = file_get_contents('https://gdata.youtube.com/feeds/api/videos/' . $videoId . '?v=2&alt=json');
-			// Decode the JSON results
-			$results = json_decode($json, TRUE);
-			// Update the videoData array from the data from YouTube
+			$json               = file_get_contents('https://gdata.youtube.com/feeds/api/videos/' . $videoId . '?v=2&alt=json');
+			$results            = json_decode($json, TRUE);
 			$videoData['views'] = $results['entry']['yt$statistics']['viewCount'];
 		}
 
@@ -173,9 +157,7 @@ class plgSystemk2_video_hits extends JPlugin {
 
 	private function updateK2($videoData, $item) {
 		if ($videoData) {
-			// Reference the global database object
-			$db = JFactory::getDbo();
-			// Update K2 with the video data from video provider.
+			$db    = JFactory::getDbo();
 			$query = 'UPDATE #__k2_items' .
 				' SET hits = ' . $videoData['views'] .
 				' WHERE id = ' . $item['id'];
@@ -190,14 +172,11 @@ class plgSystemk2_video_hits extends JPlugin {
 		// Notice: Undefined property: JObject::$url in /components/com_k2/models/item.php on line 498
 		ini_set("display_errors", 0);
 
-		$app = JFactory::getApplication();
-		// User defined set of K2 categories and exclusions to process
+		$app          = JFactory::getApplication();
 		$k2categories = htmlspecialchars($this->params->get('k2category'));
 		$exclusions   = htmlspecialchars($this->params->get('exclusions'));
 
-		// Display error message in back-end if K2 category parameter isn't defined
 		if ($app->isAdmin() && !$k2categories) {
-			// Add a message to the admin message queue
 			$app->enqueueMessage(JText::_('A K2 category has not been set for the k2 video hits plugin.'), 'error');
 		}
 
@@ -207,11 +186,9 @@ class plgSystemk2_video_hits extends JPlugin {
 
 		if ($app->isSite() && $k2categories && $this->runPseudoCron()) {
 			// JSON of all K2 items
-			$json = file_get_contents(JURI::root() . '/index.php?option=com_k2&view=itemlist&layout=category&format=json');
-			// Decode the results as an associative array
+			$json    = file_get_contents(JURI::root() . '/index.php?option=com_k2&view=itemlist&layout=category&format=json');
 			$results = json_decode($json, TRUE);
-			// Get the items array
-			$items = $results['items'];
+			$items   = $results['items'];
 
 			foreach ($items as $item) {
 				// Check that the item belongs to a category that we want to process and isn't excluded
@@ -227,7 +204,9 @@ class plgSystemk2_video_hits extends JPlugin {
 					// Retrieve video data from the provider
 					$videoData = $this->getVideoData($item);
 					// Update K2 with the data retrieved from the provider
-					$this->updateK2($videoData, $item);
+					if ($videoData) {
+						$this->updateK2($videoData, $item);
+					}
 				}
 			}
 		}
