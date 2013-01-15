@@ -200,15 +200,16 @@ class plgSystemk2_video_hits extends JPlugin {
 		// User defined set of K2 categories and exclusions to process
 		$k2categories = htmlspecialchars($this->params->get('k2category'));
 		$exclusions   = htmlspecialchars($this->params->get('exclusions'));
-		// Convert comma separated list into array while removing extra spaces
-		$k2categories = explode(',', preg_replace('/\s/', '', $k2categories));
-		$exclusions   = explode(',', preg_replace('/\s/', '', $exclusions));
 
 		// Display error message in back-end if K2 category parameter isn't defined
 		if ($app->isAdmin() && !$k2categories) {
 			// Add a message to the admin message queue
 			$app->enqueueMessage(JText::_('A K2 category has not been set for the k2 video hits plugin.'), 'error');
 		}
+
+		// Convert comma separated list into array while removing extra spaces
+		$k2categories = explode(',', preg_replace('/\s/', '', $k2categories));
+		$exclusions   = explode(',', preg_replace('/\s/', '', $exclusions));
 
 		if ($app->isSite() && $k2categories && $this->runPseudoCron()) {
 			// JSON of all K2 items
