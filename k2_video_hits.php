@@ -20,7 +20,7 @@ class plgSystemk2_video_hits extends JPlugin {
 	 *
 	 * @var
 	 */
-	protected $interval = 300;
+	//protected $interval = 300;
 
 	/**
 	 * An associative array to contain data about each video
@@ -36,11 +36,13 @@ class plgSystemk2_video_hits extends JPlugin {
 		$this->plugin =& JPluginHelper::getPlugin('system', 'k2_video_hits');
 		$this->params = new JParameter($this->plugin->params);
 		// Convert input into minutes
-		$this->interval = (int) ($this->params->get('interval', 5) * 60);
+		$this->interval = (int) ($this->params->get('interval', 5) * 1);
 		// Correct value if value is under the minimum
+		/*
 		if ($this->interval < 300) {
 			$this->interval = 300;
 		}
+		*/
 	}
 
 	/**
@@ -177,10 +179,10 @@ class plgSystemk2_video_hits extends JPlugin {
 		$youtube       = $this->params->get('youtube');
 
 		// If Brightcove is enabled and in the Media source field embed code
-		if (($brightcove) && (strpos($item[$providerfield], "brightcove") || strstr($item['video'], 'brightcove'))) {
+		if ($brightcove && ((strtolower($item[$providerfield]) === 'brightcove') || strstr($item['video'], 'brightcove'))) {
 			$videoData = $this->getBrightcoveVideoData($item, $videoIdField);
 		} // If YouTube is enabled and in the Media source field embed code
-		elseif (($youtube) && (strpos($item[$providerfield], "youtube") || strstr($item['video'], 'youtube'))) {
+		elseif ($youtube && ((strtolower($item[$providerfield]) === 'youtube') || strstr($item['video'], 'youtube'))) {
 			$videoData = $this->getYoutubeVideoData($item, $videoIdField);
 		} // In case the above conditions are not met, set videoData as NULL so we can bail out of updating the database
 		else {
