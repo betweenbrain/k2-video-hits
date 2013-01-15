@@ -35,10 +35,8 @@ class plgSystemk2_video_hits extends JPlugin {
 
 		$this->plugin =& JPluginHelper::getPlugin('system', 'k2_video_hits');
 		$this->params = new JParameter($this->plugin->params);
-
 		// Convert input into minutes
 		$this->interval = (int) ($this->params->get('interval', 5) * 60);
-
 		// Correct value if value is under the minimum
 		if ($this->interval < 300) {
 			$this->interval = 300;
@@ -121,11 +119,13 @@ class plgSystemk2_video_hits extends JPlugin {
 	 * @param $item
 	 * @return mixed
 	 */
-	private function getYoutubeVideoData($item, $videoid = NULL) {
-		// Match part of the embed code to extract the YouTube Video ID
-		if (!$videoid) {
+	private function getYoutubeVideoData($item, $videoIdField = NULL) {
+		if ($item[$videoIdField]) {
+			$videoId = $item[$videoIdField];
+		} // Match part of the embed code to extract the YouTube Video ID
+		else {
 			preg_match('/\/embed\/([a-zA-Z0-9-?]*)"/', $item['video'], $match);
-			$videoid = $match[1];
+			$videoId = $match[1];
 		}
 		// Retrieve data about this video from YouTube
 		$json = file_get_contents('https://gdata.youtube.com/feeds/api/videos/' . $videoId . '?v=2&alt=json');
@@ -143,13 +143,15 @@ class plgSystemk2_video_hits extends JPlugin {
 	 * @param $item
 	 * @return mixed
 	 */
-	private function getBrightcoveVideoData($item, $videoid = NULL) {
+	private function getBrightcoveVideoData($item, $videoIdField = NULL) {
 		// Define Brightcove API token to access video data from our account
 		$brightcovetoken = htmlspecialchars($this->params->get('brightcovetoken'));
-		// Match part of the embed code to extract the Brightcove Video ID
-		if (!$videoid) {
+		if ($item[$videoIdField]) {
+			$videoId = $item[$videoIdField];
+		} // Match part of the embed code to extract the Brightcove Video ID
+		else {
 			preg_match('/@videoPlayer" value="([0-9]*)"/', $item['video'], $match);
-			$videoid = $match[1];
+			$videoId = $match[1];
 		}
 		// Retrieve data about this video from Brightcove
 		$json = file_get_contents('http://api.brightcove.com/services/library?command=find_video_by_id&video_id=' . $videoId . '&video_fields=name,shortDescription,longDescription,publishedDate,lastModifiedDate,videoStillURL,length,playsTotal&token=' . $brightcovetoken);
@@ -170,16 +172,16 @@ class plgSystemk2_video_hits extends JPlugin {
 	 */
 	private function getVideoData($item) {
 		$providerfield = htmlspecialchars($this->params->get('providerfield'));
-		$videoid       = htmlspecialchars($this->params->get('videoid'));
 		$brightcove    = $this->params->get('brightcove');
+		$videoIdField  = htmlspecialchars($this->params->get('videoidfield'));
 		$youtube       = $this->params->get('youtube');
 
 		// If Brightcove is enabled and in the Media source field embed code
-		if (($brightcove) && (strcasecmp($providerfield, "brightcove") || strstr($item['video'], 'brightcove'))) {
-			$videoData = $this->getBrightcoveVideoData($item, $videoid);
+		if (($brightcove) && (strpos($item[$providerfield], "brightcove") || strstr($item['video'], 'brightcove'))) {
+			$videoData = $this->getBrightcoveVideoData($item, $videoIdField);
 		} // If YouTube is enabled and in the Media source field embed code
-		elseif (($youtube) && (strcasecmp($providerfield, "youtube") || strstr($item['video'], 'youtube'))) {
-			$videoData = $this->getYoutubeVideoData($item, $videoid);
+		elseif (($youtube) && (strpos($item[$providerfield], "youtube") || strstr($item['video'], 'youtube'))) {
+			$videoData = $this->getYoutubeVideoData($item, $videoIdField);
 		} // In case the above conditions are not met, set videoData as NULL so we can bail out of updating the database
 		else {
 			$videoData = NULL;
