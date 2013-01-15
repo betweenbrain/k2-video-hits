@@ -222,6 +222,14 @@ class plgSystemk2_video_hits extends JPlugin {
 			foreach ($items as $item) {
 				// Check that the item belongs to a category that we want to process and isn't excluded
 				if ((in_array($item['category']['id'], $k2categories)) && (!in_array($item['id'], $exclusions))) {
+
+					// Elevate each K2 item extra field name and value for easier access via parameter
+					foreach ($item['extra_fields'] as $fields) {
+						$name        = $fields['name'];
+						$value       = $fields['value'];
+						$item[$name] = $value;
+					}
+
 					// Retrieve video data from the provider
 					$videoData = $this->getVideoData($item);
 					// Update K2 with the data retrieved from the provider
