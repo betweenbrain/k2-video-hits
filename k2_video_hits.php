@@ -116,77 +116,56 @@ class plgSystemk2_video_hits extends JPlugin {
 	}
 
 	/**
-	 * Function to retrieve YouTube video data
-	 *
-	 * @param $item
-	 * @return mixed
-	 */
-	private function getYoutubeVideoData($item, $videoIdField = NULL) {
-		if ($item[$videoIdField]) {
-			$videoId = $item[$videoIdField];
-		} // Match part of the embed code to extract the YouTube Video ID
-		else {
-			preg_match('/\/embed\/([a-zA-Z0-9-?]*)"/', $item['video'], $match);
-			$videoId = $match[1];
-		}
-		// Retrieve data about this video from YouTube
-		$json = file_get_contents('https://gdata.youtube.com/feeds/api/videos/' . $videoId . '?v=2&alt=json');
-		// Decode the JSON results
-		$results = json_decode($json, TRUE);
-		// Build the videoData array from the data from YouTube
-		$videoData['views'] = $results['entry']['yt$statistics']['viewCount'];
-
-		return $videoData;
-	}
-
-	/**
-	 * Function to retrieve Brightcove video data
-	 *
-	 * @param $item
-	 * @return mixed
-	 */
-	private function getBrightcoveVideoData($item, $videoIdField = NULL) {
-		// Define Brightcove API token to access video data from our account
-		$brightcovetoken = htmlspecialchars($this->params->get('brightcovetoken'));
-		if ($item[$videoIdField]) {
-			$videoId = $item[$videoIdField];
-		} // Match part of the embed code to extract the Brightcove Video ID
-		else {
-			preg_match('/@videoPlayer" value="([0-9]*)"/', $item['video'], $match);
-			$videoId = $match[1];
-		}
-		// Retrieve data about this video from Brightcove
-		$json = file_get_contents('http://api.brightcove.com/services/library?command=find_video_by_id&video_id=' . $videoId . '&video_fields=name,shortDescription,longDescription,publishedDate,lastModifiedDate,videoStillURL,length,playsTotal&token=' . $brightcovetoken);
-		// Decode the JSON results
-		$results = json_decode($json, TRUE);
-		// Build the videoData array from the data from Brightcove
-
-		$videoData['views'] = $results['playsTotal'];
-
-		return $videoData;
-	}
-
-	/**
 	 * Function to return video data based on enabled parameters and detected video provider type
 	 *
 	 * @param $item
 	 * @return mixed
 	 */
 	private function getVideoData($item) {
-		$providerfield = htmlspecialchars($this->params->get('providerfield'));
 		$brightcove    = $this->params->get('brightcove');
+		$providerfield = htmlspecialchars($this->params->get('providerfield'));
 		$videoIdField  = htmlspecialchars($this->params->get('videoidfield'));
 		$youtube       = $this->params->get('youtube');
 
-		// If Brightcove is enabled and in the Media source field embed code
+		// If Brightcove is enabled and in the K2 provider extra field or Media source field embed code
 		if ($brightcove && ((strtolower($item[$providerfield]) === 'brightcove') || strstr($item['video'], 'brightcove'))) {
-			$videoData = $this->getBrightcoveVideoData($item, $videoIdField);
+
+			// Define Brightcove API token to access video data from our account
+			$brightcovetoken = htmlspecialchars($this->params->get('brightcovetoken'));
+
+			// Check for data in K2 video ID extra field
+			if ($item[$videoIdField]) {
+				$videoId = $item[$videoIdField];
+			} // Otherwise match part of the embed code to extract the Brightcove Video ID
+			else {
+				preg_match('/@videoPlayer" value="([0-9]*)"/', $item['video'], $match);
+				$videoId = $match[1];
+			}
+
+			// Retrieve data about this video from Brightcove
+			$json = file_get_contents('http://api.brightcove.com/services/library?command=find_video_by_id&video_id=' . $videoId . '&video_fields=name,shortDescription,longDescription,publishedDate,lastModifiedDate,videoStillURL,length,playsTotal&token=' . $brightcovetoken);
+			// Decode the JSON results
+			$results = json_decode($json, TRUE);
+			// Update the videoData array from the data from Brightcove
+			$videoData['views'] = $results['playsTotal'];
 		} // If YouTube is enabled and in the Media source field embed code
 		elseif ($youtube && ((strtolower($item[$providerfield]) === 'youtube') || strstr($item['video'], 'youtube'))) {
-			$videoData = $this->getYoutubeVideoData($item, $videoIdField);
-		} // In case the above conditions are not met, set videoData as NULL so we can bail out of updating the database
-		else {
-			$videoData = NULL;
+
+			// Check for data in K2 video ID extra field
+			if ($item[$videoIdField]) {
+				$videoId = $item[$videoIdField];
+			} // Otherwise match part of the embed code to extract the YouTube Video ID
+			else {
+				preg_match('/\/embed\/([a-zA-Z0-9-?]*)"/', $item['video'], $match);
+				$videoId = $match[1];
+			}
+
+			// Retrieve data about this video from YouTube
+			$json = file_get_contents('https://gdata.youtube.com/feeds/api/videos/' . $videoId . '?v=2&alt=json');
+			// Decode the JSON results
+			$results = json_decode($json, TRUE);
+			// Update the videoData array from the data from YouTube
+			$videoData['views'] = $results['entry']['yt$statistics']['viewCount'];
 		}
 
 		return $videoData;
