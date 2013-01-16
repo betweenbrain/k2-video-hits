@@ -8,10 +8,7 @@
 	<authorEmail></authorEmail>
 	<authorUrl>http://www.betweenbrain.com</authorUrl>
 	<version>0.1</version>
-	<description>Joomla! 1.5/2.5 proof of concept pseudo-cron plugin to synchronize video view data from external
-		providers with K2 item hits. Pseduo-cron portion based on the FeedGator pseudo-cron plugin by Matt Faulds of
-		Trafalgar Design (UK) Ltd.
-	</description>
+	<description>Joomla! 1.5/2.5 pseudo-cron plugin to synchronize video view data (hits) from external providers with K2 item hits. Pseduo-cron portion based on the FeedGator pseudo-cron plugin by Matt Faulds of Trafalgar Design (UK) Ltd.	</description>
 	<files>
 		<filename plugin="k2_video_hits">k2_video_hits.php</filename>
 	</files>
