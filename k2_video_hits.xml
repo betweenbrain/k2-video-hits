@@ -2,12 +2,12 @@
 <install version="2.5" type="plugin" group="system" method="upgrade">
 	<name>System - K2 Video Hits</name>
 	<author>Matt Thomas</author>
-	<creationDate>January 3, 2012</creationDate>
+	<creationDate>March 22, 2013</creationDate>
 	<copyright>2013 Matt Thomas</copyright>
 	<license>GPL 2.0</license>
 	<authorEmail></authorEmail>
 	<authorUrl>http://www.betweenbrain.com</authorUrl>
-	<version>0.1</version>
+	<version>1.0</version>
 	<description>Joomla! 1.5/2.5 pseudo-cron plugin to synchronize video view data (hits) from external providers with K2 item hits. Pseduo-cron portion based on the FeedGator pseudo-cron plugin by Matt Faulds of Trafalgar Design (UK) Ltd.	</description>
 	<files>
 		<filename plugin="k2_video_hits">k2_video_hits.php</filename>
