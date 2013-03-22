@@ -167,11 +167,31 @@ class plgSystemk2_video_hits extends JPlugin {
 		}
 	}
 
-	function onAfterRoute() {
-		// Disable error reporting due to K2 issue, see http://code.google.com/p/getk2/issues/detail?id=431
-		// Notice: Undefined property: JObject::$url in /components/com_k2/models/item.php on line 498
-		ini_set("display_errors", 0);
+	private function fetchItemPluginData($id) {
+		$db    = JFactory::getDbo();
+		$query = ' SELECT plugins
+			 FROM #__k2_items
+			 WHERE id = ' . $db->Quote($id) . '';
+		$db->setQuery($query);
+		$results = $db->loadResult();
 
+		$results = rtrim($results);
+
+		$results = preg_split('/\n/', $results);
+
+		foreach ($results as $result) {
+			$parts                 = explode("=", $result);
+			$pluginData[$parts[0]] = $parts[1];
+		}
+
+		if ($pluginData) {
+			return $pluginData;
+		}
+
+		return FALSE;
+	}
+
+	function onAfterRoute() {
 		$app          = JFactory::getApplication();
 		$k2categories = htmlspecialchars($this->params->get('k2category'));
 		$exclusions   = htmlspecialchars($this->params->get('exclusions'));
@@ -201,8 +221,15 @@ class plgSystemk2_video_hits extends JPlugin {
 						$item[$name] = $value;
 					}
 
+					// Elevate plugins data to $item object
+					$pluginData = $this->fetchItemPluginData($item['id']);
+					foreach ($pluginData as $key => $value) {
+						$item[$key] = $value;
+					}
+
 					// Retrieve video data from the provider
 					$videoData = $this->getVideoData($item);
+
 					// Update K2 with the data retrieved from the provider
 					if ($videoData) {
 						$this->updateK2($videoData, $item);
