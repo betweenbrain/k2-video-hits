@@ -215,10 +215,12 @@ class plgSystemk2_video_hits extends JPlugin {
 				if ((in_array($item['category']['id'], $k2categories)) && (!in_array($item['id'], $exclusions))) {
 
 					// Elevate each K2 item extra field name and value for easier access via parameter
-					foreach ($item['extra_fields'] as $fields) {
-						$name        = $fields['name'];
-						$value       = $fields['value'];
-						$item[$name] = $value;
+					if (isset($item['extra_fields'])) {
+						foreach ($item['extra_fields'] as $fields) {
+							$name        = $fields['name'];
+							$value       = $fields['value'];
+							$item[$name] = $value;
+						}
 					}
 
 					// Elevate plugins data to $item object
