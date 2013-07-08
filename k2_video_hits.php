@@ -175,15 +175,7 @@ class plgSystemk2_video_hits extends JPlugin {
 		$db->setQuery($query);
 		$results = $db->loadResult();
 
-		$results = rtrim($results);
-
-		$results = preg_split('/\n/', $results);
-
-		foreach ($results as $result) {
-			$parts                 = explode("=", $result);
-			$pluginData[$parts[0]] = $parts[1];
-		}
-
+		$pluginData = parse_ini_string($results, FALSE, INI_SCANNER_RAW);
 		if ($pluginData) {
 			return $pluginData;
 		}
