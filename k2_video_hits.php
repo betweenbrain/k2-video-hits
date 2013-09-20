@@ -16,13 +16,6 @@ jimport('joomla.html.parameter');
 class plgSystemk2_video_hits extends JPlugin {
 
 	/**
-	 * Hardcoded minimum of 5 minutes
-	 *
-	 * @var
-	 */
-	protected $interval = 300;
-
-	/**
 	 * An associative array to contain data about each video
 	 *
 	 * @param $videoData
@@ -36,11 +29,7 @@ class plgSystemk2_video_hits extends JPlugin {
 		$this->plugin =& JPluginHelper::getPlugin('system', 'k2_video_hits');
 		$this->params = new JParameter($this->plugin->params);
 		// Convert input into minutes
-		$this->interval = (int) ($this->params->get('interval', 5) * 60);
-		// Correct value if value is under the minimum
-		if ($this->interval < 300) {
-			$this->interval = 300;
-		}
+		$this->cronInterval = (int) ($this->params->get('cronInterval', 1) * 60);
 	}
 
 	/**
@@ -56,7 +45,7 @@ class plgSystemk2_video_hits extends JPlugin {
 		$last = $this->params->get('last_run');
 		$diff = $now - $last;
 
-		if ($diff > $this->interval) {
+		if ($diff > $this->cronInterval) {
 
 			$version = new JVersion();
 			define('J_VERSION', $version->getShortVersion());
@@ -67,7 +56,7 @@ class plgSystemk2_video_hits extends JPlugin {
 			if (J_VERSION >= 1.6) {
 				$handler = JRegistryFormat::getInstance('json');
 				$params  = new JObject();
-				$params->set('interval', $this->params->get('interval', 5));
+				$params->set('cronInterval', $this->params->get('cronInterval', 5));
 				$params->set('last_run', $now);
 				$params = $handler->objectToString($params, array());
 				// Update plugin parameters in databaseSpelling
@@ -156,8 +145,11 @@ class plgSystemk2_video_hits extends JPlugin {
 
 	private function updateK2($videoData, $item) {
 		if ($videoData) {
+			$now   = JFactory::getDate();
+			$now   = $now->toMySQL();
 			$query = 'UPDATE #__k2_items' .
 				' SET hits = ' . $videoData['views'] .
+				', modified = ' . $this->db->quote($now) .
 				' WHERE id = ' . $item['id'];
 
 			$this->db->setQuery($query);
@@ -167,8 +159,10 @@ class plgSystemk2_video_hits extends JPlugin {
 
 	function onAfterRoute() {
 		$app          = JFactory::getApplication();
-		$k2categories = htmlspecialchars($this->params->get('k2category'));
+		$batchSize    = $this->params->get('batchSize');
 		$exclusions   = htmlspecialchars($this->params->get('exclusions'));
+		$k2categories = htmlspecialchars($this->params->get('k2category'));
+		$modifiedDiff = (int) ($this->params->get('modifiedDiff') * 60);
 
 		if ($app->isAdmin() && !$k2categories) {
 			$app->enqueueMessage(JText::_('A K2 category has not been set for the k2 video hits plugin.'), 'error');
@@ -179,36 +173,51 @@ class plgSystemk2_video_hits extends JPlugin {
 		$exclusions   = explode(',', preg_replace('/\s/', '', $exclusions));
 
 		if ($app->isSite() && $k2categories && $this->runPseudoCron()) {
-			$query = "SELECT id,extra_fields,plugins FROM #__k2_items WHERE catid IN (" . implode(',', $k2categories) . ") AND published = 1 AND checked_out = 0";
+
+			$query = "SELECT id,modified,extra_fields,plugins FROM #__k2_items WHERE catid IN (" . implode(',', $k2categories) . ") AND published = 1 AND checked_out = 0";
 			$this->db->setQuery($query);
 			$items = $this->db->loadAssocList();
+
+			$now   = JFactory::getDate();
+			$now   = $now->toUnix();
+			$count = NULL;
 
 			foreach ($items as $item) {
 				// Check that the item isn't excluded
 				if (!in_array($item['id'], $exclusions)) {
 
-					// Elevate each K2 item extra field name and value for easier access via parameter
-					if (isset($item['extra_fields'])) {
-						foreach ($item['extra_fields'] as $fields) {
-							$name        = $fields['name'];
-							$value       = $fields['value'];
-							$item[$name] = $value;
+					$modified = JFactory::getDate($item['modified']);
+					$modified = $modified->toUnix();
+
+					$diff = $now - $modified;
+
+					if (($diff > $modifiedDiff || $modified == 0) && $count < $batchSize) {
+
+						// Elevate each K2 item extra field name and value for easier access via parameter
+						if (isset($item['extra_fields'])) {
+							foreach ($item['extra_fields'] as $fields) {
+								$name        = $fields['name'];
+								$value       = $fields['value'];
+								$item[$name] = $value;
+							}
 						}
-					}
 
-					// Elevate plugins data to $item object
-					$pluginData = parse_ini_string($item['plugins'], FALSE, INI_SCANNER_RAW);
-					foreach ($pluginData as $key => $value) {
-						$item[$key] = $value;
-					}
-					unset($item['plugins']);
+						// Elevate plugins data to $item object
+						$pluginData = parse_ini_string($item['plugins'], FALSE, INI_SCANNER_RAW);
+						foreach ($pluginData as $key => $value) {
+							$item[$key] = $value;
+						}
+						unset($item['plugins']);
 
-					// Retrieve video data from the provider
-					$videoData = $this->getVideoData($item);
+						// Retrieve video data from the provider
+						$videoData = $this->getVideoData($item);
 
-					// Update K2 with the data retrieved from the provider
-					if ($videoData) {
-						$this->updateK2($videoData, $item);
+						// Update K2 with the data retrieved from the provider
+						if ($videoData) {
+							$this->updateK2($videoData, $item);
+						}
+
+						$count++;
 					}
 				}
 			}
