@@ -133,7 +133,7 @@ class plgSystemk2_video_hits extends JPlugin {
 				preg_match('/@videoPlayer" value="([0-9]*)"/', $item['video'], $match);
 				$videoId = $match[1];
 			}
-			$json               = file_get_contents('http://api.brightcove.com/services/library?command=find_video_by_id&video_id=' . $videoId . '&video_fields=name,shortDescription,longDescription,publishedDate,lastModifiedDate,videoStillURL,length,playsTotal&token=' . $brightcovetoken);
+			$json               = file_get_contents('http://api.brightcove.com/services/library?command=find_video_by_id&video_id=' . $videoId . '&video_fields=playsTotal&token=' . $brightcovetoken);
 			$results            = json_decode($json, TRUE);
 			$videoData['views'] = $results['playsTotal'];
 		}
