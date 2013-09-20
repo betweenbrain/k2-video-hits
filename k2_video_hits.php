@@ -165,21 +165,6 @@ class plgSystemk2_video_hits extends JPlugin {
 		}
 	}
 
-	private function fetchItemPluginData($id) {
-		$query = ' SELECT plugins
-			 FROM #__k2_items
-			 WHERE id = ' . $this->db->Quote($id) . '';
-		$this->db->setQuery($query);
-		$results = $this->db->loadResult();
-
-		$pluginData = parse_ini_string($results, FALSE, INI_SCANNER_RAW);
-		if ($pluginData) {
-			return $pluginData;
-		}
-
-		return FALSE;
-	}
-
 	function onAfterRoute() {
 		$app          = JFactory::getApplication();
 		$k2categories = htmlspecialchars($this->params->get('k2category'));
@@ -212,10 +197,11 @@ class plgSystemk2_video_hits extends JPlugin {
 					}
 
 					// Elevate plugins data to $item object
-					$pluginData = $this->fetchItemPluginData($item['id']);
+					$pluginData = parse_ini_string($item['plugins'], FALSE, INI_SCANNER_RAW);
 					foreach ($pluginData as $key => $value) {
 						$item[$key] = $value;
 					}
+					unset($item['plugins']);
 
 					// Retrieve video data from the provider
 					$videoData = $this->getVideoData($item);
