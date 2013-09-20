@@ -199,8 +199,8 @@ class plgSystemk2_video_hits extends JPlugin {
 			$items = $this->db->loadAssocList();
 
 			foreach ($items as $item) {
-				// Check that the item belongs to a category that we want to process and isn't excluded
-				if ((in_array($item['category']['id'], $k2categories)) && (!in_array($item['id'], $exclusions))) {
+				// Check that the item isn't excluded
+				if (!in_array($item['id'], $exclusions)) {
 
 					// Elevate each K2 item extra field name and value for easier access via parameter
 					if (isset($item['extra_fields'])) {
