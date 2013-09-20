@@ -33,7 +33,7 @@
 			<option value="30">30M</option>
 			<option value="45">45M</option>
 			<option value="60">1H</option>
-			<option value="90">1H30M</option>
+			<option value="90">90M</option>
 			<option value="120">2H</option>
 			<option value="240">4H</option>
 			<option value="360">6H</option>
@@ -84,7 +84,7 @@
 			<option value="30">30M</option>
 			<option value="45">45M</option>
 			<option value="60">1H</option>
-			<option value="90">1H30M</option>
+			<option value="90">90M</option>
 			<option value="120">2H</option>
 			<option value="240">4H</option>
 			<option value="360">6H</option>
