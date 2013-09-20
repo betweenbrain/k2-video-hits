@@ -194,10 +194,9 @@ class plgSystemk2_video_hits extends JPlugin {
 		$exclusions   = explode(',', preg_replace('/\s/', '', $exclusions));
 
 		if ($app->isSite() && $k2categories && $this->runPseudoCron()) {
-			// JSON of all K2 items
-			$json    = file_get_contents(JURI::root() . '/index.php?option=com_k2&view=itemlist&layout=category&format=json');
-			$results = json_decode($json, TRUE);
-			$items   = $results['items'];
+			$query = "SELECT id,extra_fields,plugins FROM #__k2_items WHERE catid IN (" . implode(',', $k2categories) . ") AND published = 1 AND checked_out = 0";
+			$this->db->setQuery($query);
+			$items = $this->db->loadAssocList();
 
 			foreach ($items as $item) {
 				// Check that the item belongs to a category that we want to process and isn't excluded
