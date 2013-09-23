@@ -159,7 +159,7 @@ class plgSystemk2_video_hits extends JPlugin {
 
 	function onAfterRoute() {
 		$app          = JFactory::getApplication();
-		$batchSize    = $this->params->get('batchSize');
+		$batchSize    = $this->params->get('batchSize', -1);
 		$exclusions   = htmlspecialchars($this->params->get('exclusions'));
 		$k2categories = htmlspecialchars($this->params->get('k2category'));
 		$modifiedDiff = (int) ($this->params->get('modifiedDiff') * 60);
@@ -217,7 +217,9 @@ class plgSystemk2_video_hits extends JPlugin {
 							$this->updateK2($videoData, $item);
 						}
 
-						$count++;
+						if ($batchSize != -1) {
+							$count++;
+						}
 					}
 				}
 			}
